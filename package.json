@@ -1,0 +1,50 @@
+{
+  "name": "@l1nxuan-du/dsh-preset-developer-flash",
+  "version": "1.0.0",
+  "description": "Developer (Flash) Mode — a DSH agent preset that tunes DeepSeek Flash for software engineering work.",
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "cordis",
+    "agent-preset",
+    "plugin",
+    "deepseek-flash"
+  ],
+  "license": "MIT",
+  "author": "Linxuan Du",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/l1nxuan-du/dsh-preset-developer-flash.git"
+  },
+  "homepage": "https://github.com/l1nxuan-du/dsh-preset-developer-flash#readme",
+  "bugs": {
+    "url": "https://github.com/l1nxuan-du/dsh-preset-developer-flash/issues"
+  },
+  "type": "module",
+  "engines": {
+    "node": "^22.19.0 || >=24"
+  },
+  "files": [
+    "cordis.patch.yml",
+    "README.md",
+    "README.zh.md",
+    "LICENSE"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-agent-preset": ">=0.2.1-alpha.2",
+    "@deepseek-ai/dsh-agent-preset-registry": ">=0.2.1-alpha.2"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/dsh-agent-preset": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-agent-preset-registry": {
+      "optional": true
+    }
+  }
+}
