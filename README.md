@@ -10,15 +10,31 @@ Author: Linxuan Du. License: MIT.
 
 ## Install
 
-From a DSH checkout or any environment with `dsh` available, install this repository as a profile bundle:
+From any environment with `dsh` available — a DSH checkout (`pnpm dsh …`) or an installed CLI — add the package to a profile:
 
 ```sh
-dsh plugin install /path/to/dsh-preset-developer-flash
+dsh plugin --profile web add @l1nxuan-du/dsh-preset-developer-flash
 ```
 
-Or ask the agent inside DSH to install the bundle at that path. The bundle is selected into the profile's `dsh.profile.bundles` and the `preset-developer-flash` row is registered on the roster.
+The command installs the package and selects it into the profile's `dsh.profile.bundles`, so one command is enough. Requires a DSH release at or above `0.2.1-alpha.2`, the version this package was built against.
 
-The repository is not currently published to npm, so install from a checkout. If you publish your own fork, `dsh plugin install <npm-package>` works the same way.
+The target profile must mount `@deepseek-ai/dsh-agent-preset-registry`, which declares presets; the shipped `web` profile does. A profile without it installs the package but has nowhere to register the declaration.
+
+Restart a running Host afterwards: profile bundle patches are read at startup. Verify the install landed by dumping the composed tree, which should list `preset-developer-flash`:
+
+```sh
+dsh --profile web --dump-config | grep -A 3 preset-developer-flash
+```
+
+### Install without npm
+
+The package is a plain DSH bundle, so a checkout works the same way:
+
+```sh
+dsh plugin --profile web add /path/to/dsh-preset-developer-flash
+```
+
+Git addresses, tarball URLs, and any absolute path are accepted in the same position.
 
 ## Use
 
@@ -59,6 +75,6 @@ A live agent keeps the composition it started with, so the assembled prompt is s
 ## Known Limitations and Deferred Work
 
 - **The tool rows are a copy, not an import.** DSH presets declare their child plugins inline; there is no mechanism to inherit another preset's list. The rows here replicate the tool composition shipped with DSH 0.2.1-alpha.2, configuration and isolation realms included. A host release that adds, removes, reconfigures, or relocates a tool leaves this package behind until its rows are updated to match. Re-check `packages/bundle/web-app/presets/standard.patch.yml` in the DSH checkout on each upgrade.
-- **The preset rows must keep up with their plugins.** Two rows carry inline guidance text — `plan-mode` and, indirectly through tool schemas, the tool rows. A DSH release that changes those contracts can make this declaration stale or invalid; a failed activation stays visible on the roster with its diagnostic rather than failing silently.
-- **The repository is not published to npm.** Installs go through a local path or a Git URL.
+- **The preset rows must keep up with their plugins.** Two rows carry inline guidance text — `plan-mode`, and, indirectly through tool schemas, the tool rows. A DSH release that changes those contracts can make this declaration stale or invalid; a failed activation stays visible on the roster with its diagnostic rather than failing silently.
+- **The bundle patch is read at startup.** Installing into a running Host needs a restart before the preset appears; the plugin manager reports `restart-required` for a bundle whose patch content changed.
 - **No automated tests.** The package ships declarations only; verifying it means installing it into a profile and starting a session on the preset.

@@ -10,15 +10,31 @@
 
 ## 安装
 
-在 DSH 检出目录，或任何可用 `dsh` 的环境中，把本仓库作为 profile bundle 安装：
+在任何可用 `dsh` 的环境中（DSH 检出目录用 `pnpm dsh …`，或已安装的 CLI），把包装进某个 profile：
 
 ```sh
-dsh plugin install /path/to/dsh-preset-developer-flash
+dsh plugin --profile web add @l1nxuan-du/dsh-preset-developer-flash
 ```
 
-也可以让 DSH 里的 Agent 安装该路径下的 bundle。安装后它会进入 profile 的 `dsh.profile.bundles`，并在名册上注册 `preset-developer-flash` 行。
+这一条命令即完成安装，并把该 bundle 选入 profile 的 `dsh.profile.bundles`。需要 DSH `0.2.1-alpha.2` 或更高版本，本包即针对该版本构建。
 
-本仓库目前未发布到 npm，请从本地检出安装。如果你发布自己的分支，`dsh plugin install <npm 包名>` 同样可用。
+目标 profile 必须挂载 `@deepseek-ai/dsh-agent-preset-registry`（它负责声明预设），随包发布的 `web` profile 已自带；缺少它的精简 profile 能装上包，但没有地方注册声明。
+
+运行中的 Host 需要重启：profile 的 bundle patch 在启动时读取。可以 dump 组合后的配置树来确认安装生效，输出里应出现 `preset-developer-flash`：
+
+```sh
+dsh --profile web --dump-config | grep -A 3 preset-developer-flash
+```
+
+### 不从 npm 安装
+
+本包就是一个普通 DSH bundle，用本地检出同样可以：
+
+```sh
+dsh plugin --profile web add /path/to/dsh-preset-developer-flash
+```
+
+Git 地址、tarball URL 与任何绝对路径都可以放在同一位置。
 
 ## 使用
 
@@ -60,5 +76,5 @@ persona 的配置带来两个后果：
 
 - **工具行是拷贝而非引用。** DSH 预设以内联方式声明子插件，没有继承另一个预设列表的机制。这里的行复刻了 DSH 0.2.1-alpha.2 随包发布的工具组合，含配置与隔离 realm。宿主版本若新增、删除、改配或迁移工具，本包就会落后，直到同步这些行。每次升级请对照 DSH 检出中的 `packages/bundle/web-app/presets/standard.patch.yml` 复核。
 - **预设行需要跟随其插件演进。** 有两处行内携带指引文本 —— `plan-mode`，以及通过工具 schema 间接携带的工具行。DSH 版本若改变这些约定，本声明可能过期或失效；激活失败会带诊断信息留在名册上，而不会静默失败。
-- **仓库尚未发布到 npm。** 安装走本地路径或 Git URL。
+- **bundle patch 在启动时读取。** 装进运行中的 Host 需要重启后预设才会出现；patch 内容发生变化的 bundle，插件管理器会报告 `restart-required`。
 - **没有自动化测试。** 本包只发布声明；验证方式就是装进 profile 并新建会话试用。
