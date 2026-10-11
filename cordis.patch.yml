@@ -9,9 +9,20 @@
 # drops the optional runtime-context snapshots while the required working
 # directory stays.
 #
-# Every plugin row is the shipped `standard` composition unchanged: the full tool
-# set with the same configuration and realms. See README.md for what that implies
-# when the host deployment moves on.
+# Every plugin row below is byte-identical to the shipped `standard` preset of
+# BOTH the 0.2.0-rc.2 and 0.2.1-alpha.2 lines — the intersection of the two row
+# sets, so one package serves both runtimes. Two `standard` rows are deliberately
+# left out, each for a concrete cross-version reason:
+#
+#   - `tool-schedule`: no `@deepseek-ai/dsh-tool-schedule` release exists for the
+#     0.2.0-rc.2 line, so the row would fail to import there and reject the whole
+#     preset mount. On 0.2.1-alpha.x, add it back next to `tool-jobs`.
+#   - `time-context`: on 0.2.0-rc.2 that row belongs to the opt-in
+#     `@deepseek-ai/dsh-experimental-schedule-bundle`, which mounts it on the HOST
+#     plane; a preset declaring the same row concurrently would register the
+#     `timeContext` projection twice.
+#
+# See README.md for what the copied rows imply when the host deployment moves on.
 
 - insert:
         - id: preset-developer-flash
@@ -109,8 +120,6 @@
                 name: '@deepseek-ai/dsh-agent-instructions'
                 config:
                   maxBytes: 65536
-              - id: time-context
-                name: '@deepseek-ai/dsh-time-context'
               - id: tool-bash
                 name: '@deepseek-ai/dsh-tool-bash'
                 disabled: !!js process.platform === 'win32'
@@ -125,8 +134,6 @@
                   sampleOverCapGlobResults: false
               - id: tool-jobs
                 name: '@deepseek-ai/dsh-tool-jobs'
-              - id: tool-schedule
-                name: '@deepseek-ai/dsh-tool-schedule'
               - id: skill-filesystem
                 name: '@deepseek-ai/dsh-skill-filesystem'
               - id: tool-skill
@@ -189,6 +196,10 @@
                       provider: spawn
                       toolName: subagent
                       modelSelectionSettings: true
+                      # The 0.2.0-rc.2 standard preset sets this; 0.2.1-alpha.2
+                      # dropped the key and ignores it (schemastery preserves
+                      # unknown keys instead of rejecting them).
+                      backgroundMode: continuable
                       toolFilter:
                         deny:
                           - schedule_create
@@ -200,6 +211,7 @@
                     config:
                       provider: fork
                       toolName: subagent_fork
+                      backgroundMode: continuable
                       toolFilter:
                         deny:
                           - schedule_create

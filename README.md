@@ -16,7 +16,7 @@ From any environment with `dsh` available — a DSH checkout (`pnpm dsh …`) or
 dsh plugin --profile web add @l1nxuan-du/dsh-preset-developer-flash
 ```
 
-The command installs the package and selects it into the profile's `dsh.profile.bundles`, so one command is enough. Requires a DSH release at or above `0.2.1-alpha.2`, the version this package was built against.
+The command installs the package and selects it into the profile's `dsh.profile.bundles`, so one command is enough. One package serves both published DSH lines — `0.2.0-rc.2` (`latest`) and `0.2.1-alpha.2` (`alpha`) — so the requirement is a DSH release at or above `0.2.0-rc.2`.
 
 The target profile must mount `@deepseek-ai/dsh-agent-preset-registry`, which declares presets; the shipped `web` profile does. A profile without it installs the package but has nowhere to register the declaration.
 
@@ -52,7 +52,7 @@ Create a new session and select **Developer (Flash) Mode** in the preset picker.
 | `persona.prefix` | The 76-line collaboration brief, verbatim |
 | `persona.complete` | `false` |
 | `persona.includeRuntimeContext` | `false` |
-| Plugin rows | The shipped `standard` composition, unchanged |
+| Plugin rows | The `standard` composition of both published DSH lines, intersected |
 
 Two consequences follow from the persona configuration:
 
@@ -74,7 +74,11 @@ A live agent keeps the composition it started with, so the assembled prompt is s
 
 ## Known Limitations and Deferred Work
 
-- **The tool rows are a copy, not an import.** DSH presets declare their child plugins inline; there is no mechanism to inherit another preset's list. The rows here replicate the tool composition shipped with DSH 0.2.1-alpha.2, configuration and isolation realms included. A host release that adds, removes, reconfigures, or relocates a tool leaves this package behind until its rows are updated to match. Re-check `packages/bundle/web-app/presets/standard.patch.yml` in the DSH checkout on each upgrade.
+- **The tool rows are a copy, not an import.** DSH presets declare their child plugins inline; there is no mechanism to inherit another preset's list. The rows here are the **intersection** of the tool compositions shipped with DSH `0.2.0-rc.2` and `0.2.1-alpha.2`, configuration and isolation realms included, so one package mounts on either line. A host release that adds, removes, reconfigures, or relocates a tool leaves this package behind until its rows are updated to match. Re-check `packages/bundle/web-app/presets/standard.patch.yml` in the DSH checkout on each upgrade.
+- **Two `standard` rows are deliberately omitted.**
+  - `tool-schedule`: no `@deepseek-ai/dsh-tool-schedule` release exists for the `0.2.0-rc.2` line, so the row would fail to import there and reject the whole preset mount. The four reminder tools are therefore absent on both lines; on `0.2.1-alpha.x` you can add the row back next to `tool-jobs`.
+  - `time-context`: on `0.2.0-rc.2` that row belongs to the opt-in `@deepseek-ai/dsh-experimental-schedule-bundle`, which mounts it on the **host** plane. A preset declaring the same row concurrently would register the `timeContext` projection twice, so the preset leaves it to the host. On `0.2.1-alpha.x`, where presets own the row, the trade-off costs the preset its current-time context.
+- **The row set is cross-version, so per-version wording is not.** The `plan-mode` guidance text matches `0.2.1-alpha.2`; `tool-subagent` carries `backgroundMode: continuable` (the `0.2.0-rc.2` value — `0.2.1-alpha.2` no longer reads that key, and its schema preserves unknown keys rather than rejecting them) together with `0.2.1-alpha.2`'s `toolFilter` deny list.
 - **The preset rows must keep up with their plugins.** Two rows carry inline guidance text — `plan-mode`, and, indirectly through tool schemas, the tool rows. A DSH release that changes those contracts can make this declaration stale or invalid; a failed activation stays visible on the roster with its diagnostic rather than failing silently.
 - **The bundle patch is read at startup.** Installing into a running Host needs a restart before the preset appears; the plugin manager reports `restart-required` for a bundle whose patch content changed.
 - **No automated tests.** The package ships declarations only; verifying it means installing it into a profile and starting a session on the preset.

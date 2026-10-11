@@ -16,7 +16,7 @@
 dsh plugin --profile web add @l1nxuan-du/dsh-preset-developer-flash
 ```
 
-这一条命令即完成安装，并把该 bundle 选入 profile 的 `dsh.profile.bundles`。需要 DSH `0.2.1-alpha.2` 或更高版本，本包即针对该版本构建。
+这一条命令即完成安装，并把该 bundle 选入 profile 的 `dsh.profile.bundles`。同一个包同时服务 DSH 的两条公开版本线 —— `0.2.0-rc.2`（`latest`）与 `0.2.1-alpha.2`（`alpha`）—— 因此要求 DSH `0.2.0-rc.2` 或更高版本。
 
 目标 profile 必须挂载 `@deepseek-ai/dsh-agent-preset-registry`（它负责声明预设），随包发布的 `web` profile 已自带；缺少它的精简 profile 能装上包，但没有地方注册声明。
 
@@ -52,7 +52,7 @@ Git 地址、tarball URL 与任何绝对路径都可以放在同一位置。
 | `persona.prefix` | 76 行协作提示词，逐字原文 |
 | `persona.complete` | `false` |
 | `persona.includeRuntimeContext` | `false` |
-| 插件行 | DSH 内置 `standard` 组合，未作改动 |
+| 插件行 | 两条公开版本线各自 `standard` 组合的交集 |
 
 persona 的配置带来两个后果：
 
@@ -74,7 +74,11 @@ persona 的配置带来两个后果：
 
 ## 已知限制与待办
 
-- **工具行是拷贝而非引用。** DSH 预设以内联方式声明子插件，没有继承另一个预设列表的机制。这里的行复刻了 DSH 0.2.1-alpha.2 随包发布的工具组合，含配置与隔离 realm。宿主版本若新增、删除、改配或迁移工具，本包就会落后，直到同步这些行。每次升级请对照 DSH 检出中的 `packages/bundle/web-app/presets/standard.patch.yml` 复核。
+- **工具行是拷贝而非引用。** DSH 预设以内联方式声明子插件，没有继承另一个预设列表的机制。这里的行是 DSH `0.2.0-rc.2` 与 `0.2.1-alpha.2` 随包发布的工具组合的**交集**，含配置与隔离 realm，因此同一个包在两条版本线上都能挂载。宿主版本若新增、删除、改配或迁移工具，本包就会落后，直到同步这些行。每次升级请对照 DSH 检出中的 `packages/bundle/web-app/presets/standard.patch.yml` 复核。
+- **有两行 `standard` 行被有意省略。**
+  - `tool-schedule`：`0.2.0-rc.2` 版本线根本没有 `@deepseek-ai/dsh-tool-schedule` 发布版，该行在那里会导入失败并导致整个预设挂载被拒。因此四条提醒工具在两条线上都缺席；在 `0.2.1-alpha.x` 上可以把它加回 `tool-jobs` 旁边。
+  - `time-context`：在 `0.2.0-rc.2` 上这一行属于可选的 `@deepseek-ai/dsh-experimental-schedule-bundle`，由它挂在**宿主**层。预设若同时声明同一行，会把 `timeContext` 这个 projection 注册两次，因此预设把它留给宿主。在 `0.2.1-alpha.x`（预设自己拥有该行）上，这个取舍意味着预设失去了当前时间上下文。
+- **行集是跨版本的，按版本定制的文案则不是。** `plan-mode` 的指引文案取 `0.2.1-alpha.2`；`tool-subagent` 同时带上 `backgroundMode: continuable`（`0.2.0-rc.2` 的取值 —— `0.2.1-alpha.2` 已不再读取该键，其 schema 会保留未知键而不是报错）与 `0.2.1-alpha.2` 的 `toolFilter` 拒绝列表。
 - **预设行需要跟随其插件演进。** 有两处行内携带指引文本 —— `plan-mode`，以及通过工具 schema 间接携带的工具行。DSH 版本若改变这些约定，本声明可能过期或失效；激活失败会带诊断信息留在名册上，而不会静默失败。
 - **bundle patch 在启动时读取。** 装进运行中的 Host 需要重启后预设才会出现；patch 内容发生变化的 bundle，插件管理器会报告 `restart-required`。
 - **没有自动化测试。** 本包只发布声明；验证方式就是装进 profile 并新建会话试用。
