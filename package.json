@@ -1,7 +1,7 @@
 {
-  "name": "@l1nxuan-du/dsh-preset-developer-flash",
-  "version": "1.0.1",
-  "description": "Developer (Flash) Mode — a DSH agent preset that tunes DeepSeek Flash for software engineering work.",
+  "name": "@l1nxuan-du/dsh-preset-jackpot",
+  "version": "2.0.0",
+  "description": "Jackpot Mode — a DSH agent preset that tunes DeepSeek Flash for software engineering work.",
   "keywords": [
     "dsh",
     "deepseek-harness",
@@ -14,11 +14,11 @@
   "author": "Linxuan Du",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/l1nxuan-du/dsh-preset-developer-flash.git"
+    "url": "git+https://github.com/l1nxuan-du/dsh-preset-jackpot.git"
   },
-  "homepage": "https://github.com/l1nxuan-du/dsh-preset-developer-flash#readme",
+  "homepage": "https://github.com/l1nxuan-du/dsh-preset-jackpot#readme",
   "bugs": {
-    "url": "https://github.com/l1nxuan-du/dsh-preset-developer-flash/issues"
+    "url": "https://github.com/l1nxuan-du/dsh-preset-jackpot/issues"
   },
   "type": "module",
   "engines": {
